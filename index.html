@@ -311,7 +311,7 @@ footer { text-align: center; color: var(--muted); font-size: 0.85rem; }
     var extra=[];
     txt.split(/\r?\n/).forEach(function(line){
       line=line.trim(); if(!line || line.charAt(0)==='#') return;
-      var parts=line.split('|'); extra.push({si:parts[0].trim(), src:(parts[1]||'').trim()});
+      var parts=line.split('|'); extra.push({si:parts[0].trim(), src:(parts[1]||'').trim() || 'යෝගාවචරෝපදේශය · මාතර ශ්‍රී ඥානාරාම මාහිමිපාණන් වහන්සේ'});
     });
     clearTimeout(t); start(extra);
   }).catch(function(){ clearTimeout(t); start([]); });
