@@ -169,6 +169,25 @@ h2::after { content: ""; flex: 1; height: 1px; background: var(--line); }
   padding: 18px 16px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); text-wrap: balance;
 }
 .view-intro { text-align: center; margin: 0 0 4px; padding: 14px 16px; background: var(--saffron-soft); border-radius: 12px; color: var(--fg); }
+.splash {
+  position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at 50% 35%, #fbf7ea 0%, #efe6cf 70%, #e6d8b6 100%);
+  padding: max(24px, env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(24px, env(safe-area-inset-left, 0px));
+  transition: opacity .6s ease;
+}
+.splash.out { opacity: 0; pointer-events: none; }
+.splash-inner { max-width: 30rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.splash-flower { width: 72px; height: 72px; border-radius: 50%; mix-blend-mode: multiply; }
+.splash-pali { margin: 0; font-family: var(--display); font-weight: 700; font-size: 1.45rem; line-height: 1.7; color: #544f31; text-wrap: balance; }
+.splash-pali[hidden] + .splash-mean { font-family: var(--display); font-size: 1.3rem; font-weight: 600; color: #544f31; }
+.splash-mean { margin: 0; font-size: 1.12rem; line-height: 1.8; color: #3a3524; text-wrap: balance; }
+.splash-src { margin: 0; font-size: 0.85rem; letter-spacing: .04em; color: #a0742f; }
+.splash-src::before { content: ""; display: block; width: 48px; height: 1px; background: #c9a86a; margin: 0 auto 12px; }
+.splash-go { margin-top: 6px; font-family: var(--body); font-size: 1rem; font-weight: 700; color: #f5f4ec; background: #544f31; border: 0; border-radius: 999px; padding: 10px 22px; cursor: pointer; }
+.splash-go:focus-visible { outline: 2px solid #a0742f; outline-offset: 3px; }
+.splash-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(84,79,49,.12); }
+.splash-bar span { display: block; height: 100%; width: 0; background: #a0742f; }
+@media (prefers-reduced-motion: reduce) { .splash { transition: none; } }
 .view { display: flex; flex-direction: column; gap: 24px; }
 .view[hidden] { display: none !important; }
 .shortcuts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
@@ -254,6 +273,50 @@ footer { text-align: center; color: var(--muted); font-size: 0.85rem; }
 </head>
 <body>
 
+<div class="splash" id="splash" role="dialog" aria-modal="true" aria-label="ධර්ම අවවාදය">
+  <div class="splash-inner">
+    <img class="splash-flower" src="icon-192.png" alt="">
+    <p class="splash-pali" id="sp-pali"></p>
+    <p class="splash-mean" id="sp-mean"></p>
+    <p class="splash-src" id="sp-src"></p>
+    <button class="splash-go" id="sp-go" type="button">ඉදිරියට ›</button>
+  </div>
+  <div class="splash-bar"><span id="sp-bar"></span></div>
+</div>
+<script>
+(function(){
+  var Q=[["අප්පමාදො අමතපදං, පමාදො මච්චුනො පදං.", "අප්‍රමාදය අමෘත නිවනට මඟයි; ප්‍රමාදය මරණයට මඟයි.", "Heedfulness is the path to the Deathless; heedlessness is the path to death.", "21"], ["සබ්බපාපස්ස අකරණං, කුසලස්ස උපසම්පදා, සචිත්තපරියොදපනං, එතං බුද්ධාන සාසනං.", "සියලු පව් නොකිරීමත්, කුසල් රැස් කිරීමත්, තම සිත පිරිසිදු කිරීමත් යන මෙය බුදුවරුන්ගේ අනුශාසනයයි.", "Not doing any evil, cultivating the good, purifying one's own mind: this is the teaching of the Buddhas.", "183"], ["න හි වෙරෙන වෙරානි, සම්මන්තීධ කුදාචනං; අවෙරෙන ච සම්මන්ති, එස ධම්මො සනන්තනො.", "මේ ලෝකයේ වෛරයෙන් වෛරය කිසි කලෙක නොසංසිඳේ; අවෛරයෙන්ම සංසිඳේ. මෙය සනාතන ධර්මයයි.", "Hatred is never appeased by hatred in this world; by non-hatred alone is it appeased. This is an eternal law.", "5"], ["අත්තා හි අත්තනො නාථො, කො හි නාථො පරො සියා.", "තමාට පිහිට තමාමය; අන් කවරෙක් නම් පිහිට වන්නේද?", "One is indeed one's own refuge; who else could be the refuge?", "160"], ["තුම්හෙහි කිච්චං ආතප්පං, අක්ඛාතාරො තථාගතා.", "වීර්යය ඔබ විසින්ම කළ යුතුය; තථාගතයන් වහන්සේලා මඟ කියා දෙන්නෝ පමණි.", "You yourselves must strive; the Tathāgatas only show the way.", "276"], ["චිත්තස්ස දමථො සාධු, චිත්තං දන්තං සුඛාවහං.", "සිත දමනය කිරීම යහපත්ය; දමනය කළ සිත සැප ගෙන දෙයි.", "Good is the taming of the mind; a tamed mind brings happiness.", "35"], ["ආරොග්‍යපරමා ලාභා, සන්තුට්ඨිපරමං ධනං; විස්සාසපරමා ඤාති, නිබ්බානං පරමං සුඛං.", "නිරෝගී බව උතුම් ලාභයයි; ලද දෙයින් සතුටු වීම උතුම් ධනයයි; විශ්වාසවන්තයා උතුම් ඥාතියායි; නිවන උතුම් සැපයයි.", "Health is the highest gain, contentment the greatest wealth, the trustworthy the best of kin, Nibbāna the highest bliss.", "204"], ["උට්ඨානෙනප්පමාදෙන, සංයමෙන දමෙන ච; දීපං කයිරාථ මෙධාවී, යං ඔඝො නාභිකීරති.", "උත්සාහයෙන්, අප්‍රමාදයෙන්, සංවරයෙන් සහ දමනයෙන් නුවණැත්තා කෙලෙස් සැඩපහරට යට නොවන දිවයිනක් තමාට සාදා ගනී.", "By effort, heedfulness, restraint and self-control, the wise one makes an island that no flood can overwhelm.", "25"], ["සබ්බදානං ධම්මදානං ජිනාති.", "සියලු දානයන් අතරින් ධර්ම දානය උතුම් වේ.", "The gift of the Dhamma excels all gifts.", "354"], ["නත්ථි සන්තිපරං සුඛං.", "නිවනට වඩා උසස් සැපයක් නැත.", "There is no happiness higher than peace.", "202"]], KEY='nauyana-quote', sp=document.getElementById('splash'), inner=sp.querySelector('.splash-inner');
+  var en=(function(){ try{ return localStorage.getItem('nauyana-lang')==='en'; }catch(e){ return false; } })();
+  var go=document.getElementById('sp-go'); if(en) go.textContent='Continue ›';
+  var MS=9000, done=false, started=false;
+  inner.style.visibility='hidden';
+  function close(){ if(done) return; done=true; sp.classList.add('out'); setTimeout(function(){ sp.hidden=true; },650); }
+  go.addEventListener('click',close); sp.addEventListener('click',function(e){ if(e.target===sp) close(); });
+  function start(extra){
+    if(started) return; started=true;
+    var list=extra.concat(Q.map(function(q){ return {pali:q[0], si:q[1], en:q[2], src:(en?'Dhammapada, verse ':'ධම්මපදය · ')+q[3]}; }));
+    var i=0; try{ i=(parseInt(localStorage.getItem(KEY),10)+1)||0; }catch(e){ i=Math.floor(Math.random()*list.length); }
+    i=i%list.length; try{ localStorage.setItem(KEY,i); }catch(e){}
+    var q=list[i], pali=document.getElementById('sp-pali');
+    pali.textContent=q.pali||''; pali.hidden=!q.pali;
+    document.getElementById('sp-mean').textContent=(en&&q.en)?q.en:q.si;
+    document.getElementById('sp-src').textContent=q.src||'';
+    inner.style.visibility='visible';
+    var bar=document.getElementById('sp-bar');
+    bar.animate && bar.animate([{width:'0%'},{width:'100%'}],{duration:MS,easing:'linear',fill:'forwards'});
+    setTimeout(close,MS);
+  }
+  var t=setTimeout(function(){ start([]); },1500);
+  fetch('avavada.txt',{cache:'no-cache'}).then(function(r){ return r.ok?r.text():''; }).then(function(txt){
+    var extra=[];
+    txt.split(/\r?\n/).forEach(function(line){
+      line=line.trim(); if(!line || line.charAt(0)==='#') return;
+      var parts=line.split('|'); extra.push({si:parts[0].trim(), src:(parts[1]||'').trim()});
+    });
+    clearTimeout(t); start(extra);
+  }).catch(function(){ clearTimeout(t); start([]); });
+})();
+</script>
 <div class="lb protect" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="ඡායාරූප ගැලරිය">
   <div class="lb-img" id="lb-img"></div>
   <button class="lb-close" id="lb-close" type="button" aria-label="වසන්න">✕</button>
